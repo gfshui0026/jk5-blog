@@ -4,7 +4,9 @@ git push
 
 git add . ; git commit -m "update: fix email" ; git push
 
+試跑
 npm run dev
+ctrl+C  結束
 
 http://localhost:4321
 
