@@ -1,0 +1,9 @@
+git add .
+git commit -m "post: 新增一則思緒整理筆記"
+git push
+
+git add . && git commit -m "update: 更新網站內容" && git push
+
+npm run dev
+
+https://jk5-blog.pages.dev/
