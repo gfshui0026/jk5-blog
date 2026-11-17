@@ -1,0 +1,3 @@
+git add .
+git commit -m "post: 新增一則思緒整理筆記"
+git push

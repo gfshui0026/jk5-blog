@@ -1,11 +1,417 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import { getCollection, render } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import { JK5_CATEGORIES } from '../content.config';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// 取得所有貼文並依日期由新到舊排序
+const allPosts = await getCollection('posts');
+const sortedPosts = allPosts.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+// 預先渲染每篇短貼文的 Markdown 內容，讓訪客在首頁就能直接舒服讀完
+const renderedPosts = await Promise.all(
+  sortedPosts.map(async (post) => {
+    const { Content } = await render(post);
+    return { ...post, Content };
+  })
+);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="思緒書房｜用邏輯理清思緒，用溫度陪你慢慢走">
+  <!-- 首屏主視覺 -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-eyebrow">諮商引導 · 系統化實驗 · 養貓日常</p>
+      <h1>用系統化邏輯理清思緒，<br />用貓與日常的溫度陪你慢慢走。</h1>
+      <p class="hero-desc">
+        你好，我是 [你的名字]。這裡不說教、不製造焦慮，只記錄如何把打結的煩惱拆解成可執行的步驟，以及那些讓生活變舒服的微小片刻。
+      </p>
+      <div class="hero-actions">
+        <a href="#services" class="btn-primary">探索思緒整理室</a>
+        <a href="#posts" class="btn-secondary">隨意逛逛日常</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心服務簡介（支柱 1 入口） -->
+  <section id="services" class="services-box">
+    <div class="services-header">
+      <h2>當腦袋像打結的耳機線時，我們可以一起做的三件事</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-item">
+        <span class="step-num">01</span>
+        <h3>一對一思緒梳理</h3>
+        <p>把模糊的焦慮攤開，用結構化提問陪你看見問題真正的源頭。</p>
+      </div>
+      <div class="service-item">
+        <span class="step-num">02</span>
+        <h3>個人系統化建置</h3>
+        <p>設計不靠意志力、低摩擦力的生活與工作節奏，讓秩序自然發生。</p>
+      </div>
+      <div class="service-item">
+        <span class="step-num">03</span>
+        <h3>溫和行動陪跑</h3>
+        <p>不設定高壓 KPI，用你覺得最舒服的步調，陪你一步步推進改變。</p>
+      </div>
+    </div>
+    <div class="services-cta">
+      <a href="mailto:your@email.com">預約 30 分鐘免費初步聊聊 →</a>
+    </div>
+  </section>
+
+  <!-- JK5 雙欄內容資訊流 -->
+  <section id="posts" class="feed-section">
+    <!-- JK5 分類篩選按鈕 -->
+    <div class="filter-bar" role="tablist" aria-label="JK5 主題篩選">
+      <button class="filter-btn active" data-category="all">全部筆記</button>
+      {JK5_CATEGORIES.map((cat) => (
+        <button class="filter-btn" data-category={cat}>{cat}</button>
+      ))}
+    </div>
+
+    <div class="feed-layout">
+      <!-- 左側 70%：短貼文資訊流 -->
+      <div class="posts-column">
+        {renderedPosts.map(({ id, data, Content }) => {
+          const formattedDate = data.date.toLocaleDateString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          return (
+            <article class="post-card" data-category={data.category}>
+              <div class="post-meta">
+                <span class="category-tag">#{data.category}</span>
+                <time datetime={data.date.toISOString()}>{formattedDate}</time>
+              </div>
+              <h3 class="post-title">
+                <a href={`/posts/${id}`}>{data.title}</a>
+              </h3>
+              <div class="post-body">
+                <Content />
+              </div>
+              <div class="post-footer">
+                <a href={`/posts/${id}`} class="share-link">獨立連結 ↗</a>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <!-- 右側 30%：今日狀態卡側邊欄 -->
+      <aside class="sidebar-column">
+        <div class="widget-card">
+          <h4>今日書房狀態</h4>
+          <ul class="status-list">
+            <li><span>📖 正在讀</span> 原子習慣</li>
+            <li><span>📺 正在追</span> AI 科幻影集 Ep.4</li>
+            <li><span>🐾 主子狀態</span> 在鍵盤旁打呼嚕</li>
+            <li><span>🔋 能量指數</span> 85% 舒服運轉中</li>
+          </ul>
+        </div>
+
+        <div class="widget-card warm-tint">
+          <h4>關於 JK5 角落</h4>
+          <p class="widget-text">
+            這裡的文字由 20% 的諮商與陪跑思考，加上 80% 的養貓、效率實驗、閱讀與下線充電組成。希望你逛完後，心裡也多了一點留白。
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
 </Layout>
+
+<!-- 前端即時篩選互動腳本 -->
+<script>
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.post-card');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      // 切換按鈕高亮狀態
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const selected = btn.getAttribute('data-category');
+
+      // 篩選顯示對應卡片
+      cards.forEach((card) => {
+        const el = card as HTMLElement;
+        if (selected === 'all' || el.getAttribute('data-category') === selected) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  /* 首屏 */
+  .hero {
+    padding: 72px 0 56px;
+  }
+
+  .hero-eyebrow {
+    color: var(--accent-green);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.85rem, 4vw, 2.6rem);
+    margin-bottom: 20px;
+  }
+
+  .hero-desc {
+    max-width: 640px;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 32px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--accent-green);
+    color: #fff;
+    padding: 12px 26px;
+    border-radius: 99px;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-green-hover);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 12px 26px;
+    border-radius: 99px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+
+  .btn-secondary:hover {
+    opacity: 0.8;
+  }
+
+  /* 服務特色區塊 */
+  .services-box {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 64px;
+  }
+
+  .services-header h2 {
+    font-size: 1.4rem;
+    margin-bottom: 28px;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  .service-item {
+    background: var(--bg-main);
+    padding: 24px;
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+  }
+
+  .step-num {
+    display: inline-block;
+    color: var(--accent-warm);
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .service-item h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  .service-item p {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  .services-cta a {
+    color: var(--accent-green);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  /* 分類篩選列 */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .filter-btn {
+    background: var(--bg-card);
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 8px 18px;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  .filter-btn.active {
+    background: var(--accent-green);
+    color: #fff;
+  }
+
+  /* 雙欄主體 */
+  .feed-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    align-items: start;
+  }
+
+  @media (max-width: 820px) {
+    .feed-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 短貼文卡片 */
+  .posts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .post-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 28px 32px;
+    transition: transform 0.2s;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+
+  .category-tag {
+    color: var(--accent-green);
+    background: #EEF3F0;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .post-meta time {
+    color: var(--text-muted);
+  }
+
+  .post-title {
+    font-size: 1.25rem;
+    margin-bottom: 14px;
+  }
+
+  .post-title a:hover {
+    color: var(--accent-green);
+  }
+
+  .post-body :global(p) {
+    margin-bottom: 14px;
+    color: var(--text-main);
+  }
+
+  .post-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .post-footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-soft);
+    text-align: right;
+  }
+
+  .share-link {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .share-link:hover {
+    color: var(--accent-warm);
+  }
+
+  /* 側邊欄 */
+  .sidebar-column {
+    position: sticky;
+    top: 92px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .widget-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .widget-card.warm-tint {
+    background: #F6EFEA;
+  }
+
+  .widget-card h4 {
+    font-size: 1.05rem;
+    margin-bottom: 14px;
+    color: var(--text-main);
+  }
+
+  .status-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+
+  .status-list span {
+    display: inline-block;
+    color: var(--text-muted);
+    margin-right: 6px;
+  }
+
+  .widget-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+</style>
