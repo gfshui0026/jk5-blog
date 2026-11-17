@@ -2,8 +2,10 @@ git add .
 git commit -m "post: 新增一則思緒整理筆記"
 git push
 
-git add . && git commit -m "update: 更新網站內容" && git push
+git add . ; git commit -m "update: fix email" ; git push
 
 npm run dev
+
+http://localhost:4321
 
 https://jk5-blog.pages.dev/
