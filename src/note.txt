@@ -1,3 +1,9 @@
+思緒整理室
+呼嚕觀察日記
+人生系統化實驗
+書頁與微光
+下線充電站
+
 cd jk5-blog
 git add . ; git commit -m "update: status" ; git push
 
