@@ -1,8 +1,5 @@
-git add .
-git commit -m "post: 新增一則思緒整理筆記"
-git push
-
-git add . ; git commit -m "update: fix email" ; git push
+cd jk5-blog
+git add . ; git commit -m "update: status" ; git push
 
 試跑
 npm run dev
