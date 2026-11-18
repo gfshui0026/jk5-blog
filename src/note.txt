@@ -14,3 +14,6 @@ ctrl+C  結束
 http://localhost:4321
 
 https://jk5-blog.pages.dev/
+
+Cloudflare Dashboard
+https://dash.cloudflare.com/90f0477b57927140f49e6f3057a79001/home
